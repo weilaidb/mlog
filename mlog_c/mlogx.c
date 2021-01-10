@@ -394,7 +394,15 @@ int mlogxShowKeysDetail()
         T_MlogNode *pLogMsgNode = pt->pHeader;
         while (pLogMsgNode) {
             iSubNum++;
-            printf("  |-No:%4d, Log : %s\n", iSubNum, pLogMsgNode->pLog);
+            if(pLogMsgNode->pLog)
+            {
+                printf("  |-SubNo:%3d, Log : %s", iSubNum, pLogMsgNode->pLog);
+                int iLen = strlen(pLogMsgNode->pLog);
+                if(iLen > 0 && pLogMsgNode->pLog[iLen - 1] != '\n')
+                {
+                    printf("\n");
+                }
+            }
             pLogMsgNode = pLogMsgNode->pNext;
         }
         pt = pt->pNext;
