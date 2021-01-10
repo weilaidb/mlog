@@ -20,7 +20,7 @@
 /*****************************宏定义****************************************/
 #define MEMGET malloc
 #define MEMPUT free
-
+#define NAMEMAX (64)
 //释放节点
 #define FREENODE(ptr) \
 do{\
@@ -33,12 +33,20 @@ do{\
 
 
 /*****************************结构体或类型定义*******************************/
+//节点 存储数据
 typedef struct T_MlogNode {
     struct T_MlogNode *pNext;     /* next pointer */
     struct T_MlogNode *pPrev;     /* previous pointer */
     CHAR *pLog;     /* record logs */
     BYTE *pMsg;     /* record messages */
 }T_MlogNode, *P_MlogNode;
+
+//映射key
+typedef struct T_MlogKey {
+    struct T_MlogKey *pNext; /* next pointer */
+    CHAR mName[NAMEMAX];
+    T_MlogNode *pHeader;     /* record header */
+}T_MlogKey, *P_MlogKey;
 
 
 /*****************************全局变量****************************************/
@@ -83,8 +91,9 @@ extern "C" {
 
 
 /*****************************函数或类实现****************************************/
+int mlogxShowKeys();
+int mlogxShowKeysDetail();
 int mlogxByKey(CHAR *pKey, const CHAR *fmt, ...);
-
 #ifdef __cplusplus
 }
 #endif

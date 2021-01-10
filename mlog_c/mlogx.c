@@ -55,7 +55,7 @@ extern "C" {
 
 
 /*****************************全局变量****************************************/
-
+T_MlogKey *pKeyRoot = NULL;
 
 /*****************************本地变量****************************************/
 
@@ -226,7 +226,181 @@ T_MlogNode *mlogxRecordMsg(BYTE *pMsg, WORD32 dwMsgLen)
     return pNode;
 }
 
+/******************************************************************************
+ * mlogxFindKey
+ * 功能描述:查找记录的KEY
+ * 输入参数:
+ * 输出参数:
+ * 返回结果: 0-成功,其它-失败
+ *
+ * modification history
+ * --------------------
+ * 001, 2021-01-10 23:11:05,  written
+ * --------------------
+ ******************************************************************************/
+T_MlogKey *mlogxFindKey(CHAR *pKey)
+{
+    T_MlogKey * pt =pKeyRoot;
+    while (pt) {
+        if (strcmp(pt->mName, pKey) == 0)
+        {
+            return pt;
+        }
+        pt = pt->pNext;
+    }
+    return NULL;
+}
 
+/******************************************************************************
+ * mlogxInitKeyNode
+ * 功能描述:初始化Key节点
+ * 输入参数:
+ * 输出参数:
+ * 返回结果: 0-成功,其它-失败
+ *
+ * modification history
+ * --------------------
+ * 001, 2021-01-10 23:14:00,  written
+ * --------------------
+ ******************************************************************************/
+T_MlogKey *mlogxInitKeyNode(CHAR *pKey)
+{
+    int iLen = 0;
+    T_MlogKey *pKeyNode = (T_MlogKey *)malloc(sizeof(T_MlogKey));
+    CHECK_POINTER_RET(pKeyNode, NULL);
+    memset((void *)pKeyNode,0,sizeof(T_MlogKey));
+    iLen = snprintf(pKeyNode->mName, sizeof(pKeyNode->mName),"%s", pKey);
+    if(iLen < 0)
+    {
+        //TODO
+    }
+    return pKeyNode;
+}
+
+/******************************************************************************
+ * mlogxInsertKeyNode
+ * 功能描述:插入节点 MlogKey
+ * 输入参数:
+ * 输出参数:
+ * 返回结果: 0-成功,其它-失败
+ *
+ * modification history
+ * --------------------
+ * 001, 2021-01-10 23:21:03,  written
+ * --------------------
+ ******************************************************************************/
+T_MlogKey *mlogxInsertKeyNode(CHAR *pKey)
+{
+    T_MlogKey * pt =pKeyRoot;
+    T_MlogKey *pKeyNode = mlogxFindKey(pKey);
+    if(NULL != pKeyNode)
+    {
+        return pKeyNode;
+    }
+    pKeyNode = mlogxInitKeyNode(pKey);
+    CHECK_POINTER_RET(pKeyNode, NULL);
+
+    if(pt)
+    {
+        while (pt->pNext) {
+            pt = pt->pNext;
+        }
+        pt->pNext = pKeyNode;
+    }
+    else
+    {
+        pKeyRoot = pKeyNode;
+    }
+
+    return pKeyNode;
+}
+
+/******************************************************************************
+ * mlogxInsertLogNode2KeyNode
+ * 功能描述:添加日志节点到KEY
+ * 输入参数:
+ * 输出参数:
+ * 返回结果: 0-成功,其它-失败
+ *
+ * modification history
+ * --------------------
+ * 001, 2021-01-10 23:40:52,  written
+ * --------------------
+ ******************************************************************************/
+int mlogxInsertLogNode2KeyNode(T_MlogKey *pMlogKey,T_MlogNode *pLogMsgNode)
+{
+    CHECK_POINTER_RET(pMlogKey, -1);
+    CHECK_POINTER_RET(pLogMsgNode, -1);
+    T_MlogNode *pt = pMlogKey->pHeader;
+    if(pt)
+    {
+        while (pt->pNext) {
+            pt = pt->pNext;
+        }
+        pt->pNext = pLogMsgNode;
+    }
+    else
+    {
+        pMlogKey->pHeader = pLogMsgNode;
+    }
+    return 0;
+}
+
+/******************************************************************************
+ * mlogxShowKeys
+ * 功能描述:显示Key列表
+ * 输入参数:
+ * 输出参数:
+ * 返回结果: 0-成功,其它-失败
+ *
+ * modification history
+ * --------------------
+ * 001, 2021-01-10 23:31:32,  written
+ * --------------------
+ ******************************************************************************/
+int mlogxShowKeys()
+{
+    int iNum = 0;
+    T_MlogKey * pt = pKeyRoot;
+    while (pt) {
+        iNum++;
+        printf("No:%3d, Name : %s\n", iNum, pt->mName);
+        pt = pt->pNext;
+    }
+    return 0;
+}
+
+/******************************************************************************
+ * mlogxShowKeysDetail
+ * 功能描述:显示Key列表及下面的日志报文
+ * 输入参数:
+ * 输出参数:
+ * 返回结果: 0-成功,其它-失败
+ *
+ * modification history
+ * --------------------
+ * 001, 2021-01-10 23:44:16,  written
+ * --------------------
+ ******************************************************************************/
+int mlogxShowKeysDetail()
+{
+    int iNum = 0;
+    int iSubNum = 0;
+    T_MlogKey * pt = pKeyRoot;
+    while (pt) {
+        iNum++;
+        printf("No:%3d, Name : %s\n", iNum, pt->mName);
+
+        T_MlogNode *pLogMsgNode = pt->pHeader;
+        while (pLogMsgNode) {
+            iSubNum++;
+            printf("  |-No:%4d, Log : %s\n", iSubNum, pLogMsgNode->pLog);
+            pLogMsgNode = pLogMsgNode->pNext;
+        }
+        pt = pt->pNext;
+    }
+    return 0;
+}
 
 /******************************************************************************
  * mlogxByKey
@@ -246,6 +420,10 @@ int mlogxByKey(CHAR *pKey, const CHAR *fmt, ...)
 
     int len = 0;
     va_list args;
+    T_MlogKey *pMlogKey = NULL;
+
+    pMlogKey = mlogxInsertKeyNode(pKey);
+    CHECK_POINTER_RET(pMlogKey, -1);
 
     va_start(args, fmt);
     len = _vscprintf( fmt, args ) // _vscprintf doesn't count
@@ -260,7 +438,7 @@ int mlogxByKey(CHAR *pKey, const CHAR *fmt, ...)
         return -2;
     }
 
-    mlogxRecordLog(pBuf);
+    mlogxInsertLogNode2KeyNode(pMlogKey, mlogxRecordLog(pBuf));
     va_end(args);
     FREENODE(pBuf);
 
