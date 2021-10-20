@@ -94,6 +94,7 @@ extern "C" {
 int mlogxShowKeys();
 int mlogxShowKeysDetail();
 int mlogxByKey(CHAR *pKey, const CHAR *fmt, ...);
+int getStrOfData(CHAR *pTips, BYTE *pData, WORD16 wLen);
 #ifdef __cplusplus
 }
 #endif

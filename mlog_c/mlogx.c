@@ -455,6 +455,43 @@ int mlogxByKey(CHAR *pKey, const CHAR *fmt, ...)
 
 
 
+int getStrOfData(CHAR *pTips, BYTE *pData, WORD16 wLen)
+{
+    int iLen = 0;
+    WORD16 wLp =  0;
+    WORD32 dwTotal =  0;
+    WORD32 dwMemLen = wLen * 2 + 1;
+    CHAR *pBuf = (CHAR *)MEMGET(dwMemLen);
+    CHECK_POINTER_RET(pBuf, -1);
+    memset(pBuf, 0, dwMemLen);
+
+    for(wLp = 0;wLp < wLen;wLp++)
+    {
+        iLen = snprintf(pBuf + dwTotal, 2,"%02x", pData[wLp]);
+        if(iLen < 0)
+        {
+            pBuf[dwMemLen] = '\0';
+            break;
+        }
+        dwTotal += 2;
+    }
+
+    //do something here, eg print
+    printf("[%s],Len:%u, Msg: %s\n", pTips, wLen, pBuf);
+
+
+    FREENODE(pBuf);
+    return 0;
+}
+
+
+
+
+
+
+
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -16,5 +16,15 @@ int main()
     CHECK_RET(mlogxByKey("test3", "hello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the worldhello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goohello the world is goo is goohello the world is goo %s %d\n", "nice day", 4000));
     mlogxShowKeys();
     mlogxShowKeysDetail();
+
+    BYTE uacBuf[5] = {'c'};
+
+    getStrOfData("print buf", uacBuf, sizeof(uacBuf));
+
+    memset(uacBuf, 255, sizeof(uacBuf));
+    getStrOfData("print buf", uacBuf, sizeof(uacBuf));
+    memset(uacBuf, 1, sizeof(uacBuf));
+    getStrOfData("print buf", uacBuf, sizeof(uacBuf));
+
     return 0;
 }
